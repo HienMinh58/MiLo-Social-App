@@ -1,34 +1,32 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import Register from './components/Register'
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function Home() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+      <h1>Ứng dụng web</h1>
+      <p>Chào mừng bạn đến với ứng dụng của chúng tôi</p>
+      <nav style={{ marginTop: '20px' }}>
+        <Link to="/register" style={{ marginRight: '20px', textDecoration: 'none', color: '#2563eb' }}>
+          Đăng ký
+        </Link>
+        <Link to="/login" style={{ textDecoration: 'none', color: '#2563eb' }}>
+          Đăng nhập
+        </Link>
+      </nav>
+    </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

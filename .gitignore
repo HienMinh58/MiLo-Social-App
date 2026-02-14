@@ -1,0 +1,31 @@
+# ===========================
+# Backend (C# / .NET)
+# ===========================
+/backend/bin/
+ /backend/obj/
+ *.user
+ *.suo
+ *.dll
+ *.exe
+ *.pdb
+
+# ===========================
+# Frontend (Node / React / Vite)
+# ===========================
+/frontend/node_modules/
+/frontend/dist/
+/frontend/.vite/
+/frontend/.vite-temp/
+/frontend/.env
+
+# ===========================
+# System files
+# ===========================
+.DS_Store
+Thumbs.db
+.env
+
+# ===========================
+# GitHub workflows
+# ===========================
+.github/

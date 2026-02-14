@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "z82V9eFMBYs=",
+  "dgSpecHash": "W3wKAHWgsWA=",
   "success": true,
   "projectFilePath": "D:\\webapp\\backend\\backend.csproj",
   "expectedPackageFiles": [
@@ -12,7 +12,10 @@
     "C:\\Users\\admin\\.nuget\\packages\\microsoft.entityframeworkcore.inmemory\\10.0.2\\microsoft.entityframeworkcore.inmemory.10.0.2.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\microsoft.entityframeworkcore.relational\\10.0.2\\microsoft.entityframeworkcore.relational.10.0.2.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\microsoft.extensions.apidescription.server\\10.0.0\\microsoft.extensions.apidescription.server.10.0.0.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\microsoft.extensions.caching.stackexchangeredis\\10.0.3\\microsoft.extensions.caching.stackexchangeredis.10.0.3.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\microsoft.openapi\\2.4.1\\microsoft.openapi.2.4.1.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
+    "C:\\Users\\admin\\.nuget\\packages\\stackexchange.redis\\2.7.27\\stackexchange.redis.2.7.27.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\swashbuckle.aspnetcore\\10.1.1\\swashbuckle.aspnetcore.10.1.1.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\10.1.1\\swashbuckle.aspnetcore.swagger.10.1.1.nupkg.sha512",
     "C:\\Users\\admin\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\10.1.1\\swashbuckle.aspnetcore.swaggergen.10.1.1.nupkg.sha512",

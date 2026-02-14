@@ -7,6 +7,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // Add DbContext (Using in-memory for demo)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("MiLoAppDb"));
@@ -30,6 +41,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+// Use CORS
+app.UseCors("AllowFrontend");
 
 app.UseAuthorization();
 

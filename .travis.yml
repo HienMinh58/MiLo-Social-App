@@ -1,0 +1,8 @@
+language: csharp
+solution: backend/backend.sln
+mono: none
+dotnet: 10.0
+script:
+  - dotnet restore
+  - dotnet build backend/backend.sln --configuration Release
+  - dotnet test Api.Tests/Api.Tests.csproj --no-build --verbosity normal

@@ -39,3 +39,15 @@ D:\webapp\backend\obj\Debug\net10.0\refint\backend.dll
 D:\webapp\backend\obj\Debug\net10.0\backend.pdb
 D:\webapp\backend\obj\Debug\net10.0\backend.genruntimeconfig.cache
 D:\webapp\backend\obj\Debug\net10.0\ref\backend.dll
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.Extensions.Caching.StackExchangeRedis.dll
+D:\webapp\backend\bin\Debug\net10.0\Pipelines.Sockets.Unofficial.dll
+D:\webapp\backend\bin\Debug\net10.0\StackExchange.Redis.dll
+D:\webapp\backend\obj\Debug\net10.0\backend.sourcelink.json
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.IdentityModel.Abstractions.dll
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.IdentityModel.JsonWebTokens.dll
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.IdentityModel.Logging.dll
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+D:\webapp\backend\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
+D:\webapp\backend\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll

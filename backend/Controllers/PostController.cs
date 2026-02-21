@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualBasic;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public class PostController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -35,7 +36,7 @@ public class PostController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         var friendIdList = await _context.Friends
-            .Where(f => f.RequesterId == userId && f.friendStatus == FriendStatus.Accepted)
+            .Where(f => f.RequesterId == userId && f.FriendStatus == FriendStatus.Accepted)
             .Select(f => f.AddresseeId)
             .ToListAsync();
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import { API_URL } from '../config/api';
+import { Box, Button, FormControl, FormLabel, Input, Heading, Alert, AlertIcon, AlertDescription, IconButton } from '@chakra-ui/react';
 
 interface RegisterForm {
   name: string;
@@ -78,72 +79,93 @@ const Register: React.FC = () => {
     }
   };
 
-  const formStyle: React.CSSProperties = {
-    maxWidth: 420,
-    margin: '20px auto',
-    padding: 20,
-    borderRadius: 8,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-    background: '#fff',
-    fontFamily: 'Segoe UI, Roboto, Helvetica, Arial, sans-serif'
-  };
-
-  const inputStyle: React.CSSProperties = {
-    display: 'block',
-    width: '100%',
-    padding: '10px 12px',
-    marginBottom: 12,
-    borderRadius: 6,
-    border: '1px solid #dcdcdc',
-    boxSizing: 'border-box'
-  };
-
-  const btnStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '10px 12px',
-    borderRadius: 6,
-    border: 'none',
-    background: '#2563eb',
-    color: '#fff',
-    fontWeight: 600,
-    cursor: 'pointer'
-  };
-
   return (
-    <div style={{ padding: 12 }}>
-      <form onSubmit={handleSubmit} style={formStyle} noValidate>
-        <h2 style={{ marginTop: 0, marginBottom: 12 }}>Register</h2>
-
-        {message && <div style={{ marginBottom: 12, color: 'green' }}>{message}</div>}
-
-        {errors.length > 0 && (
-          <div style={{ marginBottom: 12, color: '#b91c1c' }}>
-            <ul style={{ margin: 0, paddingLeft: 18 }}>
-              {errors.map((err, i) => (
-                <li key={i}>{err}</li>
-              ))}
-            </ul>
-          </div>
+    <Box minH="100vh" bg={"white"} display={"flex"} alignItems={"center"} justifyContent={"center"} px={4} py={12}>
+      <Box position={"relative"} maxW={"md"} w={"full"} p={8} borderWidth={1} borderRadius={"lg"} boxShadow={"lg"} bg={"white"}>
+        <Heading mb={8} textAlign={"center"} color={"gray.800"}>
+          Register
+        </Heading>
+        {/* Success Message */}
+        {message && (
+          <Alert status="success" mb={6} borderRadius="md">
+            <AlertIcon />
+            <AlertDescription>{message}</AlertDescription>
+          </Alert>
         )}
+        {/*Error messages*/}
+        {errors.length > 0 && (
+          <Alert status="error" mb={6} borderRadius="md">
+            <AlertIcon />
+            <AlertDescription>
+              {errors.map((err, index) => (
+                <div key={index}>{err}</div>
+              ))}
+            </AlertDescription>
+          </Alert>
+        )}
+        <form onSubmit={handleSubmit}>
+          <FormControl mb={5}>
+            <FormLabel>Name</FormLabel>
+            <Input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="Full name"
+              required
+            />
+          </FormControl>
 
-        <label style={{ fontSize: 14, marginBottom: 6 }}>Tên</label>
-        <input name="name" value={form.name} onChange={handleChange} style={inputStyle} placeholder="Họ và tên" />
+          <FormControl mb={5}>
+            <FormLabel>Email</FormLabel>
+            <Input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="email@example.com"
+              required
+            />
+          </FormControl>
 
-        <label style={{ fontSize: 14, marginBottom: 6 }}>Email</label>
-        <input name="email" value={form.email} onChange={handleChange} style={inputStyle} placeholder="email@example.com" type="email" />
+          <FormControl mb={5}>
+            <FormLabel>Password</FormLabel>
+            <Input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Password"
+              required
+            />
+          </FormControl>
 
-        <label style={{ fontSize: 14, marginBottom: 6 }}>Mật khẩu</label>
-        <input name="password" value={form.password} onChange={handleChange} style={inputStyle} placeholder="Mật khẩu" type="password" />
+          <FormControl mb={8}>
+            <FormLabel>Validate Password</FormLabel>
+            <Input
+              name="confirmPassword"
+              type="password"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              placeholder="Re-enter your password"
+              required
+            />
+          </FormControl>
 
-        <label style={{ fontSize: 14, marginBottom: 6 }}>Xác nhận mật khẩu</label>
-        <input name="confirmPassword" value={form.confirmPassword} onChange={handleChange} style={inputStyle} placeholder="Nhập lại mật khẩu" type="password" />
+          <Button
+            type="submit"
+            colorScheme="teal"
+            width="full"
+            size="lg"
+            isLoading={loading}
+            loadingText="Sending..."
+          >
+            Register
+          </Button>
+        </form>
+      </Box>
+    </Box>
+  )
 
-        <button type="submit" style={btnStyle} disabled={loading}>
-          {loading ? 'Sending...' : 'Register'}
-        </button>
-      </form>
-    </div>
-  );
 };
 
 export default Register;

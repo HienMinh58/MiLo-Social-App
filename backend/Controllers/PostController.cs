@@ -26,9 +26,22 @@ public class PostController : ControllerBase
             Content = dto.Content,
             CreatedAt = DateTime.UtcNow
         };
+        
         _context.Posts.Add(post);
         await _context.SaveChangesAsync();
-        return Ok(post);
+
+        await _context.Entry(post).Reference(p => p.User).LoadAsync();
+
+        return Ok(new
+        {
+            post.Id,
+            post.Content,
+            post.CreatedAt,
+            User = new { post.User.Id, post.User.UserName, post.User.Email},
+            likesCount = 0,
+            isLikedByMe = false,
+            Comments = new List<Comment>(),
+        });
     }
     [HttpGet]
     public async Task<IActionResult> GetFeed()
@@ -42,7 +55,7 @@ public class PostController : ControllerBase
 
         friendIdList.Add(userId);
 
-        var posts = _context.Posts
+        var posts = await _context.Posts
             .Where(p => friendIdList.Contains(p.UserId))
             .Include(p => p.User)
             .Include(p => p.Comments)

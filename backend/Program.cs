@@ -65,7 +65,6 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
-
 // Map Controllers
 app.MapControllers();
 

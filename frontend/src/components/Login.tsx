@@ -33,7 +33,7 @@ const Login: React.FC = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post(`${API_URL}/account/register`, form);
+            const response = await axios.post(`${API_URL}/account/login`, form);
             const { token } = response.data;
             localStorage.setItem('jwt', token);
             alert('Login successful!');
@@ -50,8 +50,8 @@ const Login: React.FC = () => {
 
 return (
         <Box
-            minH="100vh"                    // ← Full screen height
-            bg="white"                      // ← White background (removes black bar)
+            minH="100vh"                    
+            bg="white"                     
             display="flex"
             alignItems="center"
             justifyContent="center"

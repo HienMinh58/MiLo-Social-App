@@ -5,6 +5,7 @@ import { Link as RouterLink } from "react-router-dom";
 import Register from './components/Register'
 import './App.css'
 import Login from './components/Login'
+import Feed from './components/Feed'
 function Home() {
   return (
     <Box textAlign={"center"} 
@@ -72,6 +73,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/feed" element={<Feed />} />
       </Routes>
     </BrowserRouter>
   )

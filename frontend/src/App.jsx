@@ -1,69 +1,91 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { Box, Heading, Text, HStack, Button, Image } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 
-import Register from './components/Register'
-import './App.css'
-import Login from './components/Login'
-import Feed from './components/Feed'
+import Register from "./components/Register";
+import "./App.css";
+import Login from "./components/Login";
+import Feed from "./components/Feed";
 function Home() {
   return (
-    <Box textAlign={"center"} 
-    py={10} 
-    px={4} 
-    minH="100vh" 
-    display="flex" 
-    bg="white"
-    flexDirection="column"
-    justifyContent={"center"}>
-      <HStack 
-        spacing={5} 
-        justify="center" 
-        mb={8}
-        alignItems="center"
+    <Box
+      position="fixed"
+      top="0"
+      left="0"
+      w="100vw"
+      h="100vh"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      bgGradient="radial(circle at top left, blue.100, purple.100, white)"
+      px={6}
+    >
+      <Box
+        bg="white"
+        p={{ base: 8, md: 12 }}
+        borderRadius="2xl"
+        boxShadow="xl"
+        textAlign="center"
+        maxW="600px"
+        w="100%"
       >
-        <Image
-          src="/milo.jpg"
-          alt="MiLo Logo"
-          boxSize={{ base: "52px", md: "68px" }}
-          objectFit="contain"
-          borderRadius="md"
-        />
-        <Heading 
-          size="3xl" 
-          color="gray.800"
-          lineHeight="1.1"
-        >
-          MiLo Chat App
-        </Heading>
-      </HStack>
-      <Text mb={10} fontSize="lg" color="gray.600">
-          Welcome to MiLo. A real time chat app
-      </Text>
-      <HStack spacing={4} justify={"center"}>
-        <Button
-          as={RouterLink}
-          to={"/register"}
-          colorScheme='blue'
-          variant={'outline'}
-          size="lg"
-          minW="140px"
-        >
-          Register
-        </Button>
-        <Button
-          as={RouterLink}
-          to="/login"
-          colorScheme="blue"
-          variant="outline"
-          size="lg"
-          minW="140px"
-        >
-          Login
-        </Button>
-      </HStack>
+        <HStack justify="center" mb={6} spacing={4}>
+          <Image
+            src="/milo.jpg"
+            alt="MiLo Logo"
+            boxSize="70px"
+            borderRadius="xl"
+            boxShadow="md"
+          />
+          <Heading
+            size="2xl"
+            bgGradient="linear(to-r, blue.500, purple.500)"
+            bgClip="text"
+          >
+            MiLo Chat
+          </Heading>
+        </HStack>
+
+        <Text fontSize="lg" color="gray.600" mb={8}>
+          Connect instantly. Chat in real-time. Experience seamless messaging
+          with MiLo.
+        </Text>
+
+        <HStack spacing={4} justify="center">
+          <Button
+            as={RouterLink}
+            to="/register"
+            colorScheme="blue"
+            size="lg"
+            px={8}
+            borderRadius="full"
+            boxShadow="md"
+            _hover={{
+              transform: "translateY(-2px)",
+              boxShadow: "lg",
+            }}
+          >
+            Get Started
+          </Button>
+
+          <Button
+            as={RouterLink}
+            to="/login"
+            variant="outline"
+            colorScheme="blue"
+            size="lg"
+            px={8}
+            borderRadius="full"
+            _hover={{
+              bg: "blue.50",
+            }}
+          >
+            Login
+          </Button>
+        </HStack>
+      </Box>
     </Box>
-  )
+  );
 }
 
 function App() {
@@ -76,7 +98,7 @@ function App() {
         <Route path="/feed" element={<Feed />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;

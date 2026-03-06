@@ -6,6 +6,8 @@ import Register from "./components/Register";
 import "./App.css";
 import Login from "./components/Login";
 import Feed from "./components/Feed";
+import Profile  from "./components/Profile";
+
 function Home() {
   return (
     <Box
@@ -96,6 +98,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/feed" element={<Feed />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </BrowserRouter>
   );

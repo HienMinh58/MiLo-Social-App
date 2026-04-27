@@ -38,7 +38,10 @@ public class AccountController : ControllerBase
 
         if (result.Succeeded)
         {
-            return Ok(new { message= "Registration Successful !"});
+            return Ok(new { 
+                message= "Registration Successful !",
+                userId = user.Id
+            });
         }
 
         return BadRequest(result.Errors);

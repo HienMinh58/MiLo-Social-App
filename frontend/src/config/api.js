@@ -2,7 +2,7 @@
 export const getApiUrl = () => {
   // In Docker: use the backend service name
   if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    // Local development
+    // Local development (host machine, docker-compose mapped ports)
     return 'http://localhost:8080/api';
   }
   

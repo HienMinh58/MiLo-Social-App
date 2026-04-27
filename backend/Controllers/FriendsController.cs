@@ -123,4 +123,37 @@ public class FriendsController : ControllerBase
         
         return Ok(users);
     }
+
+    [HttpDelete("decline/{requesterId}")]
+    public async Task<IActionResult> DeclineRequest(string requesterId)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var request = await _context.Friends.FindAsync(requesterId, currentUserId);
+
+        if (request == null || request.FriendStatus != FriendStatus.Pending)
+            return NotFound("Pending friend request not found.");
+        
+        _context.Friends.Remove(request);
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
+
+    [HttpDelete("remove/{friendId}")]
+    public async Task<IActionResult> RemoveFriend(string friendId)
+    {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // A friendship involves two records (A -> B and B -> A)
+        var relationship1 = await _context.Friends.FindAsync(currentUserId, friendId);
+        var relationship2 = await _context.Friends.FindAsync(friendId, currentUserId);
+
+        if (relationship1 != null) _context.Friends.Remove(relationship1);
+        if (relationship2 != null) _context.Friends.Remove(relationship2);
+
+        if (relationship1 == null && relationship2 == null)
+            return NotFound("Friend relationship not found.");
+
+        await _context.SaveChangesAsync();
+        return Ok();
+    }
 }

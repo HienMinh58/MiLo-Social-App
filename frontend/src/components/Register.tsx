@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import { API_URL } from '../config/api';
 import { Box, Button, FormControl, FormLabel, Input, Heading, Alert, AlertIcon, AlertDescription, IconButton } from '@chakra-ui/react';
+import { useNavigate } from 'react-router-dom';
 
 interface RegisterForm {
   name: string;
@@ -20,6 +21,7 @@ const Register: React.FC = () => {
   const [errors, setErrors] = useState<string[]>([]);
   const [message, setMessage] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,8 +66,13 @@ const Register: React.FC = () => {
     try {
       const payload = { userName: form.name, email: form.email, password: form.password };
       const res = await axios.post(`${API_URL}/account/register`, payload);
-      if (res && res.data && typeof res.data.message === 'string') setMessage(res.data.message);
+      if (res && res.data && typeof res.data.message === 'string') {
+        setMessage(res.data.message + " Redirecting to login...");
+      } else {
+        setMessage("Registration successful! Redirecting to login...");
+      }
       setForm({ name: '', email: '', password: '', confirmPassword: '' });
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       const error = err as AxiosError;
       if (error.response && error.response.data) {

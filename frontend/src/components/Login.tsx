@@ -36,7 +36,8 @@ const Login: React.FC = () => {
             const response = await axios.post(`${API_URL}/account/login`, form);
             const { token } = response.data;
             localStorage.setItem('jwt', token);
-            alert('Login successful!');
+            // Redirect to feed to force React to re-mount and read the new token
+            window.location.href = '/feed';
         }  catch (err: any) {
             if (err.response?.status === 401) {
                 setErrors(['Invalid email or password.']);

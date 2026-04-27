@@ -17,9 +17,14 @@ interface IdentityError {
 }
 
 const Register: React.FC = () => {
-  const [form, setForm] = useState<RegisterForm>({ name: '', email: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState<RegisterForm>({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [errors, setErrors] = useState<string[]>([]);
-  const [message, setMessage] = useState<string>('');
+  const [message, setMessage] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -27,35 +32,45 @@ const Register: React.FC = () => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     setErrors([]);
-    setMessage('');
+    setMessage("");
   };
 
   const parseApiErrors = (data: unknown): string[] => {
-    if (Array.isArray(data) && data.every((item) => typeof item === 'object' && item !== null && 'description' in (item as any))) {
+    if (
+      Array.isArray(data) &&
+      data.every(
+        (item) =>
+          typeof item === "object" &&
+          item !== null &&
+          "description" in (item as any)
+      )
+    ) {
       return (data as IdentityError[]).map((i) => i.description);
     }
 
-    if (data && typeof data === 'object' && 'message' in (data as any)) {
+    if (data && typeof data === "object" && "message" in (data as any)) {
       return [(data as any).message];
     }
 
-    if (typeof data === 'string') return [data];
+    if (typeof data === "string") return [data];
 
-    return ['Error. Please try again.'];
+    return ["Error. Please try again."];
   };
 
-  const handleSubmit = async (e: React.SubmitEvent ) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setErrors([]);
-    setMessage('');
+    setMessage("");
 
     // Client-side validation
     const validationErrors: string[] = [];
-    if (!form.name.trim()) validationErrors.push('Please Enter Your Name.');
-    if (!form.email.trim()) validationErrors.push('Please Enter Your email.');
-    if (!form.password) validationErrors.push('Please Enter Your password.');
-    if (form.password && form.password.length < 6) validationErrors.push('Password must have at least 6 characters.');
-    if (form.password !== form.confirmPassword) validationErrors.push('Confirm password does not match.');
+    if (!form.name.trim()) validationErrors.push("Please Enter Your Name.");
+    if (!form.email.trim()) validationErrors.push("Please Enter Your email.");
+    if (!form.password) validationErrors.push("Please Enter Your password.");
+    if (form.password && form.password.length < 6)
+      validationErrors.push("Password must have at least 6 characters.");
+    if (form.password !== form.confirmPassword)
+      validationErrors.push("Confirm password does not match.");
 
     if (validationErrors.length) {
       setErrors(validationErrors);
@@ -64,7 +79,11 @@ const Register: React.FC = () => {
 
     setLoading(true);
     try {
-      const payload = { userName: form.name, email: form.email, password: form.password };
+      const payload = {
+        userName: form.name,
+        email: form.email,
+        password: form.password,
+      };
       const res = await axios.post(`${API_URL}/account/register`, payload);
       if (res && res.data && typeof res.data.message === 'string') {
         setMessage(res.data.message + " Redirecting to login...");
@@ -79,7 +98,7 @@ const Register: React.FC = () => {
         const parsed = parseApiErrors(error.response.data as unknown);
         setErrors(parsed);
       } else {
-        setErrors(['Cannot connect to server. Please try again.']);
+        setErrors(["Cannot connect to server. Please try again."]);
       }
     } finally {
       setLoading(false);
@@ -87,8 +106,29 @@ const Register: React.FC = () => {
   };
 
   return (
-    <Box minH="100vh" bg={"white"} display={"flex"} alignItems={"center"} justifyContent={"center"} px={4} py={12}>
-      <Box position={"relative"} maxW={"md"} w={"full"} p={8} borderWidth={1} borderRadius={"lg"} boxShadow={"lg"} bg={"white"}>
+    <Box
+      position="fixed"
+      top="0"
+      left="0"
+      w="100vw"
+      h="100vh"
+      bgGradient="radial(circle at top left, blue.100, purple.100, white)"
+      display={"flex"}
+      alignItems={"center"}
+      justifyContent={"center"}
+      px={4}
+      py={12}
+    >
+      <Box
+        position={"relative"}
+        maxW={"md"}
+        w={"full"}
+        p={8}
+        borderWidth={1}
+        borderRadius={"lg"}
+        boxShadow={"lg"}
+        bg={"white"}
+      >
         <Heading mb={8} textAlign={"center"} color={"gray.800"}>
           Register
         </Heading>
@@ -171,8 +211,7 @@ const Register: React.FC = () => {
         </form>
       </Box>
     </Box>
-  )
-
+  );
 };
 
 export default Register;

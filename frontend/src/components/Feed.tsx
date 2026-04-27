@@ -11,6 +11,7 @@ import {
     Divider,
 } from "@chakra-ui/react";
 import { API_URL } from '../config/api';
+import Navbar from "./Navbar";
 interface User {
     id: string;
     userName: string;
@@ -84,83 +85,100 @@ const Feed: React.FC = () => {
         fetchPosts();
     }, []);
 
-    return(
-        <Container maxW={"600px"} py={8} px={12}>
-            <Box mb={8}>
-                <VStack spacing={3} align={"stretch"}>
-                    <Textarea
-                    placeholder="What's on your mind?"
-                    value={newPost}
-                    onChange={(e) => setNewPost(e.target.value)}
-                    rows={3}
-                    size={"md"}
-                    resize={"vertical"}
-                    />
-                    <Button 
-                        colorScheme="blue"
-                        onClick={handleCreatePost}
-                        isDisabled={!newPost.trim()}
-                        alignSelf={"flex-end"}
-                        px={8}
-                    >
-                        Post
-                    </Button>
-                </VStack>
+    return (
+        <Box bg="gray.50" minH="100vh">
+      
+          <Navbar />
+      
+          <Container maxW="600px" pt="100px">
+      
+            {/* CREATE POST */}
+            <Box
+              bg="white"
+              p={6}
+              borderRadius="xl"
+              boxShadow="sm"
+              mb={8}
+            >
+              <VStack spacing={3} align="stretch">
+                <Textarea
+                  placeholder="What's on your mind?"
+                  value={newPost}
+                  onChange={(e) => setNewPost(e.target.value)}
+                />
+      
+                <Button
+                  colorScheme="blue"
+                  alignSelf="flex-end"
+                  onClick={handleCreatePost}
+                  isDisabled={!newPost.trim()}
+                >
+                  Post
+                </Button>
+              </VStack>
             </Box>
-
-            <VStack spacing={6} align={"stretch"}>
-                {posts.map((post) => (
-                    <Box
-                        key={post.id}
-                        borderWidth={"1px"}
-                        borderColor={"gray.200"}
-                        borderRadius={"lg"}
-                        p={6}
-                        bg={"white"}
-                        boxShadow={"sm"}
-                    >
-                        <HStack justifyContent={"space-between"} mb={4}>
-                            <Text fontWeight={"bold"} fontSize={"lg"}>
-                                {post.user.userName}
-                            </Text>
-                            <Text fontSize={"sm"} color={"gray.500"}>
-                                {new Date(post.createdAt).toLocaleString()}
-                            </Text>
-                        </HStack>
-                        <Text mb={5} fontSize={"md"}>
-                            {post.content}
+      
+            {/* POSTS */}
+            <VStack spacing={6} align="stretch">
+              {posts.map((post) => (
+                <Box
+                  key={post.id}
+                  bg="white"
+                  p={6}
+                  borderRadius="xl"
+                  boxShadow="sm"
+                  _hover={{ boxShadow: "md" }}
+                  transition="0.2s"
+                >
+      
+                  {/* HEADER */}
+                  <HStack justify="space-between" mb={4}>
+                    <Text fontWeight="bold">
+                      {post.user.userName}
+                    </Text>
+      
+                    <Text fontSize="sm" color="gray.500">
+                      {new Date(post.createdAt).toLocaleString()}
+                    </Text>
+                  </HStack>
+      
+                  {/* CONTENT */}
+                  <Text mb={4}>
+                    {post.content}
+                  </Text>
+      
+                  {/* LIKES */}
+                  <Text fontSize="sm" color="gray.600" mb={4}>
+                    👍 {post.likesCount} Likes
+                  </Text>
+      
+                  <Divider mb={4} />
+      
+                  {/* COMMENTS */}
+                  <VStack align="stretch" spacing={3}>
+                    <Text fontWeight="bold">Comments</Text>
+      
+                    {post.comments.map((c) => (
+                      <Box
+                        key={c.id}
+                        pl={4}
+                        borderLeft="2px solid"
+                        borderColor="gray.200"
+                      >
+                        <Text fontWeight="bold" fontSize="sm">
+                          {c.user.userName}
                         </Text>
-                        <Text mb={5} fontWeight={"medium"} color={"gray.600"}>
-                            Likes: {post.likesCount}{" "}
-                            {post.isLikedByMe ? "You liked" : ""}
-                        </Text>
-
-                        <Divider mb={5} />
-
-                        <VStack align={"stretch"} spacing={3}>
-                            <Text fontWeight={"semibold"} mb={2}>
-                                Comments:
-                            </Text>
-                            {post.comments.map((c) => (
-                                <Box
-                                    key={c.id}
-                                    pl={4}
-                                    borderLeft={"2px solid"}
-                                    borderColor={"gray.200"}
-                                    py={1}
-                                >
-                                    <Text fontWeight={"bold"} fontSize={"sm"}>
-                                        {c.user.userName}
-                                    </Text>
-                                    <Text fontSize="sm">{c.content}</Text>
-                                </Box>
-                            ))}
-                        </VStack>
-                    </Box>
-                ))}
+                        <Text fontSize="sm">{c.content}</Text>
+                      </Box>
+                    ))}
+                  </VStack>
+      
+                </Box>
+              ))}
             </VStack>
-        </Container>
-    );
-};
-
+      
+          </Container>
+        </Box>
+      );
+                    };
 export default Feed;

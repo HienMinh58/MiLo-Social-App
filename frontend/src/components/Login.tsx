@@ -51,8 +51,12 @@ const Login: React.FC = () => {
 
 return (
         <Box
-            minH="100vh"                    
-            bg="white"                     
+            position="fixed"
+            top="0"
+            left="0"
+            w="100vw"
+            h="100vh"                   
+            bgGradient="radial(circle at top left, blue.100, purple.100, white)"                     
             display="flex"
             alignItems="center"
             justifyContent="center"

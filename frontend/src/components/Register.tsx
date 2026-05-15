@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import { API_URL } from '../config/api';
-import { Box, Button, FormControl, FormLabel, Input, Heading, Alert, AlertIcon, AlertDescription, IconButton } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
+import { Alert, AlertDescription, AlertIcon, Box, Button, FormControl, FormLabel, Heading, Input, Link, Text } from '@chakra-ui/react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 interface RegisterForm {
   name: string;
@@ -112,7 +112,6 @@ const Register: React.FC = () => {
       left="0"
       w="100vw"
       h="100vh"
-      bgGradient="radial(circle at top left, blue.100, purple.100, white)"
       display={"flex"}
       alignItems={"center"}
       justifyContent={"center"}
@@ -124,24 +123,28 @@ const Register: React.FC = () => {
         maxW={"md"}
         w={"full"}
         p={8}
-        borderWidth={1}
-        borderRadius={"lg"}
-        boxShadow={"lg"}
-        bg={"white"}
+        borderRadius={"28px"}
+        boxShadow={"0 26px 80px rgba(23, 32, 51, 0.14)"}
+        bg={"rgba(255, 255, 255, 0.92)"}
+        border="1px solid"
+        borderColor="whiteAlpha.800"
       >
-        <Heading mb={8} textAlign={"center"} color={"gray.800"}>
+        <Heading mb={2} textAlign={"center"} color={"#172033"}>
           Register
         </Heading>
+        <Text color="gray.600" textAlign="center" mb={8}>
+          Create your MiLo account.
+        </Text>
         {/* Success Message */}
         {message && (
-          <Alert status="success" mb={6} borderRadius="md">
+          <Alert status="success" mb={6} borderRadius="16px">
             <AlertIcon />
             <AlertDescription>{message}</AlertDescription>
           </Alert>
         )}
         {/*Error messages*/}
         {errors.length > 0 && (
-          <Alert status="error" mb={6} borderRadius="md">
+          <Alert status="error" mb={6} borderRadius="16px">
             <AlertIcon />
             <AlertDescription>
               {errors.map((err, index) => (
@@ -158,6 +161,10 @@ const Register: React.FC = () => {
               value={form.name}
               onChange={handleChange}
               placeholder="Full name"
+              bg="#fbfaf7"
+              borderRadius="16px"
+              borderColor="blackAlpha.100"
+              _focus={{ borderColor: "#26cba3", boxShadow: "0 0 0 3px rgba(38, 203, 163, 0.16)" }}
               required
             />
           </FormControl>
@@ -170,6 +177,10 @@ const Register: React.FC = () => {
               value={form.email}
               onChange={handleChange}
               placeholder="email@example.com"
+              bg="#fbfaf7"
+              borderRadius="16px"
+              borderColor="blackAlpha.100"
+              _focus={{ borderColor: "#26cba3", boxShadow: "0 0 0 3px rgba(38, 203, 163, 0.16)" }}
               required
             />
           </FormControl>
@@ -182,6 +193,10 @@ const Register: React.FC = () => {
               value={form.password}
               onChange={handleChange}
               placeholder="Password"
+              bg="#fbfaf7"
+              borderRadius="16px"
+              borderColor="blackAlpha.100"
+              _focus={{ borderColor: "#26cba3", boxShadow: "0 0 0 3px rgba(38, 203, 163, 0.16)" }}
               required
             />
           </FormControl>
@@ -194,21 +209,35 @@ const Register: React.FC = () => {
               value={form.confirmPassword}
               onChange={handleChange}
               placeholder="Re-enter your password"
+              bg="#fbfaf7"
+              borderRadius="16px"
+              borderColor="blackAlpha.100"
+              _focus={{ borderColor: "#26cba3", boxShadow: "0 0 0 3px rgba(38, 203, 163, 0.16)" }}
               required
             />
           </FormControl>
 
           <Button
             type="submit"
-            colorScheme="teal"
+            bg="#172033"
+            color="white"
             width="full"
             size="lg"
+            borderRadius="full"
             isLoading={loading}
             loadingText="Sending..."
+            _hover={{ bg: "#25324d" }}
           >
             Register
           </Button>
         </form>
+
+        <Text mt={6} textAlign="center" color="gray.600">
+          Already have an account?{" "}
+          <Link as={RouterLink} to="/login" color="#16866d" fontWeight="800">
+            Login
+          </Link>
+        </Text>
       </Box>
     </Box>
   );

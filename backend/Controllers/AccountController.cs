@@ -82,6 +82,30 @@ public class AccountController : ControllerBase
 
         return Ok(new { token = jwt});
     }
+
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto model)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            return Ok(new
+            {
+                message = "If an account uses this email, password reset instructions will be sent."
+            });
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        return Ok(new
+        {
+            message = "If an account uses this email, password reset instructions will be sent.",
+            resetToken = token
+        });
+    }
 }
 
 public class RegisterDto
@@ -103,4 +127,11 @@ public class LoginDto
     public string Email { get; set; } = string.Empty;
     [Required]
     public string Password { get; set; } = string.Empty;
+}
+
+public class ForgotPasswordDto
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; } = string.Empty;
 }

@@ -12,6 +12,7 @@ import Profile from './components/Profile'
 import Messenger from './components/Messenger'
 import Navbar from './components/Navbar'
 import FriendsManager from './components/FriendsManager'
+import ForgotPassword from './components/ForgotPassword'
 
 // Utility function to decode JWT and extract user ID
 function getUserIdFromToken(token) {
@@ -112,6 +113,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/feed" element={accessToken ? <Feed /> : <Home />} />
         <Route path='/profile' element={accessToken ? <Profile /> : <Home />} />
         <Route path='/profile/:userId' element={accessToken ? <Profile /> : <Home />} />

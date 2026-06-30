@@ -1,133 +1,196 @@
 # MiLo Social App
 
-Welcome to **MiLo**, a full-featured real-time social web application. The platform provides a seamless space for users to register, discover friends, exchange real-time instant messages, create social posts, and manage their interactive user profiles.
+MiLo is a real-time social web application where users can register, discover friends, create posts, manage profiles, and chat instantly with SignalR.
 
----
+## Demo
 
-## 🚀 Main Features
+### Social Feed
 
-* **User Authentication:** Secure registration and login flows using industry-standard ASP.NET Core Identity paired with JWT Bearer Tokens.
-* **Global Search:** Discover potential friends via a real-time global search directly from the Navbar.
-* **User Profiles:** A customizable hub outlining user details, avatars, and a dynamic biography. Automatically calculates interaction buttons depending on Friendship status.
-* **Friend Requests:** A robust two-way friendship handshake. Send requests, accept/decline reciprocal invites, and instantly drop or block inactive connections.
-* **Real-time Messenger:** 
-    * End-to-End WebSocket chat powered dynamically via SignalR.
-    * Highly responsive modern UI with dynamically tracking "speech bubbles", sender name-tags, and parsed circular avatars.
-* **Social Feed:** An interactive centralized timeline spanning posts constructed by the community.
+![MiLo social feed demo](docs/images/posts.png)
 
----
+### Real-Time Chat
 
-## 🛠️ Tech Stack
+![MiLo real-time chat demo](docs/images/realtime_chat.png)
+
+## Main Features
+
+- **User Authentication:** Register and log in with ASP.NET Core Identity and JWT bearer tokens.
+- **Global Search:** Search for users from the navigation bar.
+- **User Profiles:** View and edit profile details, avatar URLs, and biography text.
+- **Friend Requests:** Send, accept, decline, and remove friend connections.
+- **Real-Time Messenger:** Chat with friends through ASP.NET Core SignalR.
+- **Social Feed:** Create posts and view community updates.
+
+## Tech Stack
 
 ### Frontend
-- **Framework:** React + TypeScript (Bootstrapped via Vite)
-- **Styling:** Chakra UI (for beautiful accessible component architectures)
-- **State & Networking:** Axios & React Router DOM
-- **Live Communication:** `@microsoft/signalr`
+
+- React + TypeScript
+- Vite
+- Chakra UI
+- Axios
+- React Router DOM
+- `@microsoft/signalr`
 
 ### Backend
-- **Core Server:** C# .NET 10 (ASP.NET Core Web API)
-- **Database ORM:** Entity Framework Core (`Npgsql.EntityFrameworkCore.PostgreSQL`)
-- **Authentication:** ASP.NET Identity & Custom JWT Middlewares (including query-string decryption for SignalR channels)
-- **Real-Time:** Microsoft SignalR Hubs
 
----
+- ASP.NET Core Web API on .NET 10
+- Entity Framework Core
+- PostgreSQL with Npgsql
+- ASP.NET Core Identity
+- JWT authentication
+- SignalR hubs
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 MiLo-Social-App/
-├── backend/
-│   ├── Controllers/     # RESTful API logic (Auth, Chat, Friends, Profile)
-│   ├── Data/            # DBContext and EF Core connection mapping
-│   ├── Hubs/            # SignalR communication pipes (ChatHub.cs)
-│   ├── Migrations/      # Auto-generated EF Core DB migrations
-│   ├── Program.cs       # ASP.NET runtime pipeline & DI containers
-│   └── backend.csproj   # Backend project manifest & library configurations
-├── frontend/
-│   ├── src/
-│   │   ├── components/  # React functional components (Messenger, Profile, App, Feed)
-│   │   ├── config/      # Environment agnostic API routing
-│   │   ├── services/    # SignalR connector configs
-│   │   └── App.jsx      # Core React Router map
-│   ├── vite.config.js   # Vite bundler options
-│   └── package.json     # Node modules and dependency trees
-└── docker-compose.yml   # Multi-container orchestration rules
+|-- backend/
+|   |-- Controllers/      # REST API endpoints
+|   |-- Data/             # EF Core DbContext
+|   |-- Hubs/             # SignalR hubs
+|   |-- Migrations/       # EF Core migrations
+|   |-- Program.cs        # Backend startup and middleware
+|   `-- backend.csproj
+|-- frontend/
+|   |-- public/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- config/
+|   |   `-- services/
+|   |-- vercel.json
+|   `-- package.json
+|-- docs/
+|   `-- images/           # README demo screenshots
+|-- docker-compose.yml
+`-- render.yaml
 ```
 
----
+## Environment Variables
 
-## ⚙️ Environment Configuration
+### Backend
 
-You'll need properly configured environment values for both local dev servers and Docker containers.
+For local development, configure `backend/appsettings.Development.json` or environment variables:
 
-**Backend (`backend/appsettings.Development.json`):**
 ```json
 {
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=milo;Username=postgres;Password=your_password"
   },
-  "JWT": {
-    "Key": "a_long_super_secret_encryption_key_for_jwt_tokens"
+  "Jwt": {
+    "Key": "a_long_random_secret_for_jwt_signing"
   }
 }
 ```
 
-**Frontend (`frontend/.env.development`):**
+For Render, set:
+
+```env
+ConnectionStrings__DefaultConnection=Host=your-neon-host;Port=5432;Database=neondb;Username=your_user;Password=your_password;SSL Mode=Require
+Jwt__Key=your_long_random_secret
+FrontendOrigins=https://your-vercel-app.vercel.app
+ASPNETCORE_ENVIRONMENT=Production
+```
+
+### Frontend
+
+For local development or Vercel:
+
 ```env
 VITE_API_URL=http://localhost:8080/api
 ```
 
-*(Note: If running via Docker Compose, the `docker-compose.yml` injects these environments inherently without needing the physical `.env` files).*
+For production on Vercel:
 
----
+```env
+VITE_API_URL=https://your-render-backend.onrender.com/api
+```
 
-## ⚡ Installation & Local Deployment
+## Local Development
 
-### Option 1: Docker Compose (Recommended)
-This approach spins up the database, compiles the .NET binaries, builds the optimized React output, and maps all ports automatically.
-1. Make sure you have Docker Desktop running.
-2. At the root of the project, run:
+### Option 1: Docker Compose
+
 ```bash
 docker compose up -d --build
 ```
-3. Open your browser to `http://localhost`.
 
-### Option 2: Native Hosting
-Ensure you have Node.js 20+ and the .NET 10 SDK installed.
+Frontend:
 
-**1. Launch the Database (Supabase / Postgres)**
-If you are attaching to a managed cloud database like Supabase, copy your external connection string and paste it straight into your `appsettings.json`.
-
-**2. Setup Backend Engine**
-```bash
-cd backend
-dotnet ef database update  # Create all tables cleanly
-dotnet run                 # API will map dynamically to port 5127 or 8080
+```text
+http://localhost
 ```
 
-**3. Setup Frontend UI**
+Backend:
+
+```text
+http://localhost:8080
+```
+
+### Option 2: Run Services Manually
+
+Start PostgreSQL first, then run the backend:
+
+```bash
+cd backend
+dotnet run
+```
+
+Run the frontend:
+
 ```bash
 cd frontend
 npm install
-npm run dev                # Starts Vite on http://localhost:5173
+npm run dev
 ```
 
----
+Frontend development server:
 
-## 🗄️ Supabase/Database Context
+```text
+http://localhost:5173
+```
 
-We heavily utilize a standard PostgreSQL database schema. 
-* By default, local docker environments initialize an ephemeral Vanilla Postgres Database. 
-* If plugging into Supabase, the Entity Framework takes completely native control over the database definitions. 
-* *Note: The architecture leverages `.NET` identity internally rather than hitting Supabase's proprietary Auth schema.*
+## Deployment
 
----
+The current deployment setup is:
 
-## 🔭 Future Improvements
+- Frontend: Vercel
+- Backend: Render Web Service with Docker
+- Database: Neon PostgreSQL
 
-While MiLo is feature-rich, our roadmap for subsequent milestone updates includes:
-1. **Push Notifications:** Web-workers pushing OS-level toasts when receiving DMs.
-2. **Cloud Storage Integration:** Integrating actual S3/Supabase storage Buckets allowing users to natively upload Avatars rather than providing hot-link URLs.
-3. **Advanced Relationships:** Creating grouping concepts, typing indicators (`User is typing...`), and read-receipts.
-4. **Enhanced React State Management:** Phasing out manual API queries in exchange for highly cached `React Query` wrappers.
+### Render Backend
+
+This repo includes `render.yaml`. Create a Render Blueprint from the repository and provide:
+
+```env
+ConnectionStrings__DefaultConnection=Host=your-neon-host;Port=5432;Database=neondb;Username=your_user;Password=your_password;SSL Mode=Require
+FrontendOrigins=https://your-vercel-app.vercel.app
+```
+
+Render builds the backend from:
+
+```text
+backend/Dockerfile
+```
+
+### Vercel Frontend
+
+Use these Vercel settings:
+
+```text
+Framework Preset: Vite
+Root Directory: frontend
+Build Command: npm run build
+Output Directory: dist
+```
+
+Set:
+
+```env
+VITE_API_URL=https://your-render-backend.onrender.com/api
+```
+
+## Notes
+
+- The backend root URL can return `404` because the API does not define a `/` route. Use `/api/...` routes from the frontend.
+- The backend applies EF Core migrations at startup.
+- Render free instances may sleep when idle, so the first request can be slow.

@@ -10,6 +10,7 @@ import {
   Input,
   Text,
   VStack,
+  useToast,
 } from "@chakra-ui/react";
 import { initSignalR, getConnection, disconnectSignalR } from "../services/signalr";
 import { API_URL } from "../config/api";
@@ -32,6 +33,12 @@ interface SelectedUser {
   id: string;
   userName: string;
   avatar?: string;
+}
+
+interface IncomingCall {
+  callerId: string;
+  callerName: string;
+  roomUrl: string;
 }
 
 function getUserIdFromToken(token: string) {
@@ -59,6 +66,9 @@ export default function Messenger() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+  const [startingCall, setStartingCall] = useState(false);
+  const toast = useToast();
 
   const accessToken = localStorage.getItem("jwt");
   const currentUserId = accessToken ? getUserIdFromToken(accessToken) : null;
@@ -83,7 +93,8 @@ export default function Messenger() {
   useEffect(() => {
     if (!accessToken) return;
 
-    initSignalR(accessToken, (senderId, content, sentAt, senderAvatarUrl) => {
+    const setupRealtime = async () => {
+      await initSignalR(accessToken, (senderId, content, sentAt, senderAvatarUrl) => {
       if (
         chatSelectedUserId &&
         (senderId === chatSelectedUserId || senderId === currentUserId)
@@ -93,7 +104,28 @@ export default function Messenger() {
           { senderId, content, sentAt, senderAvatarUrl },
         ]);
       }
-    });
+      });
+
+      const conn = getConnection();
+      if (!conn) return;
+
+      conn.off("ReceiveVideoCallInvite");
+      conn.on("ReceiveVideoCallInvite", (callerId: string, callerName: string, roomUrl: string) => {
+        setIncomingCall({ callerId, callerName, roomUrl });
+      });
+
+      conn.off("VideoCallAccepted");
+      conn.on("VideoCallAccepted", (_receiverId: string, roomUrl: string) => {
+        window.open(roomUrl, "_blank", "noopener,noreferrer");
+      });
+
+      conn.off("VideoCallDeclined");
+      conn.on("VideoCallDeclined", () => {
+        toast({ title: "Video call declined", status: "info", duration: 2500 });
+      });
+    };
+
+    setupRealtime();
   }, [accessToken, currentUserId, chatSelectedUserId]);
 
   useEffect(() => {
@@ -163,6 +195,59 @@ export default function Messenger() {
     }
   };
 
+  const startVideoCall = async () => {
+    if (!chatSelectedUserId) return;
+
+    try {
+      setStartingCall(true);
+      const res = await axios.post(
+        `${API_URL}/video-call/room`,
+        { receiverId: chatSelectedUserId },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      const roomUrl = res.data.roomUrl;
+      const conn = getConnection();
+      await conn?.invoke("InviteVideoCall", chatSelectedUserId, roomUrl);
+      toast({ title: "Calling...", status: "info", duration: 2000 });
+    } catch (err: any) {
+      toast({
+        title: "Could not start video call",
+        description: err.response?.data || err.message,
+        status: "error",
+      });
+    } finally {
+      setStartingCall(false);
+    }
+  };
+
+  const acceptVideoCall = async () => {
+    if (!incomingCall) return;
+
+    try {
+      const conn = getConnection();
+      await conn?.invoke("AcceptVideoCall", incomingCall.callerId, incomingCall.roomUrl);
+      window.open(incomingCall.roomUrl, "_blank", "noopener,noreferrer");
+    } finally {
+      setIncomingCall(null);
+    }
+  };
+
+  const declineVideoCall = async () => {
+    if (!incomingCall) return;
+
+    try {
+      const conn = getConnection();
+      await conn?.invoke("DeclineVideoCall", incomingCall.callerId);
+    } finally {
+      setIncomingCall(null);
+    }
+  };
+
   const handleSelectUser = (userId: string) => {
     setChatSelectedUserId(userId);
     setMessages([]);
@@ -176,6 +261,37 @@ export default function Messenger() {
 
   return (
     <Box minH="calc(100vh - 72px)" px={{ base: 3, md: 8 }} py={{ base: 4, md: 8 }}>
+      {incomingCall && (
+        <Box
+          position="fixed"
+          right={{ base: 4, md: 8 }}
+          top={{ base: 4, md: 8 }}
+          zIndex={200}
+          bg="white"
+          border="1px solid"
+          borderColor="blackAlpha.100"
+          borderRadius="20px"
+          boxShadow="0 22px 70px rgba(23, 32, 51, 0.18)"
+          p={5}
+          maxW="340px"
+          textAlign="left"
+        >
+          <Text fontWeight="900" color="#172033" mb={1}>
+            Incoming video call
+          </Text>
+          <Text color="gray.600" mb={4}>
+            {incomingCall.callerName} is calling you.
+          </Text>
+          <HStack justify="flex-end">
+            <Button size="sm" variant="outline" borderRadius="full" onClick={declineVideoCall}>
+              Decline
+            </Button>
+            <Button size="sm" bg="#26cba3" color="white" borderRadius="full" onClick={acceptVideoCall}>
+              Accept
+            </Button>
+          </HStack>
+        </Box>
+      )}
       <Flex
         maxW="1180px"
         mx="auto"
@@ -264,16 +380,31 @@ export default function Messenger() {
                 borderBottom="1px solid"
                 borderColor="blackAlpha.100"
                 bg="whiteAlpha.800"
+                justify="space-between"
               >
-                <Avatar src={selectedUserInfo?.avatar} name={selectedUserInfo?.userName} bg="#26cba3" color="white" />
-                <Box textAlign="left">
-                  <Heading size="sm" color="#172033">
-                    {selectedUserInfo?.userName}
-                  </Heading>
-                  <Text fontSize="sm" color="gray.500">
-                    Active on MiLo
-                  </Text>
-                </Box>
+                <HStack minW={0}>
+                  <Avatar src={selectedUserInfo?.avatar} name={selectedUserInfo?.userName} bg="#26cba3" color="white" />
+                  <Box textAlign="left" minW={0}>
+                    <Heading size="sm" color="#172033" noOfLines={1}>
+                      {selectedUserInfo?.userName}
+                    </Heading>
+                    <Text fontSize="sm" color="gray.500">
+                      Active on MiLo
+                    </Text>
+                  </Box>
+                </HStack>
+                <Button
+                  size="sm"
+                  bg="#172033"
+                  color="white"
+                  borderRadius="full"
+                  onClick={startVideoCall}
+                  isLoading={startingCall}
+                  loadingText="Calling"
+                  _hover={{ bg: "#25324d" }}
+                >
+                  Video Call
+                </Button>
               </HStack>
 
               <VStack flex={1} overflowY="auto" align="stretch" spacing={4} p={{ base: 4, md: 6 }} bg="#fbfaf7">

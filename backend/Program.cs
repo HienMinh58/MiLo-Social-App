@@ -68,6 +68,7 @@ builder.Services.AddIdentityApiEndpoints<User>()
     .AddEntityFrameworkStores<AppDbContext>();
 
 // Add more here...
+builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddControllers();
 

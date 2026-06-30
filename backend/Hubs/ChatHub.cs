@@ -39,4 +39,33 @@ public class ChatHub : Hub
 
         await Clients.Caller.SendAsync("ReceiveMessage", senderId, content, message.SentAt, senderAvatarUrl);
     }
+
+    public async Task InviteVideoCall(string receiverId, string roomUrl)
+    {
+        var senderId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(roomUrl)) return;
+
+        var senderUser = await _userManager.FindByIdAsync(senderId);
+        await Clients.User(receiverId).SendAsync(
+            "ReceiveVideoCallInvite",
+            senderId,
+            senderUser?.UserName ?? "MiLo user",
+            roomUrl);
+    }
+
+    public async Task AcceptVideoCall(string callerId, string roomUrl)
+    {
+        var receiverId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(callerId) || string.IsNullOrEmpty(roomUrl)) return;
+
+        await Clients.User(callerId).SendAsync("VideoCallAccepted", receiverId, roomUrl);
+    }
+
+    public async Task DeclineVideoCall(string callerId)
+    {
+        var receiverId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(callerId)) return;
+
+        await Clients.User(callerId).SendAsync("VideoCallDeclined", receiverId);
+    }
 }

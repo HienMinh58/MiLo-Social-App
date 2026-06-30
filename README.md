@@ -19,7 +19,7 @@ MiLo is a real-time social web application where users can register, discover fr
 - **User Profiles:** View and edit profile details, avatar URLs, and biography text.
 - **Friend Requests:** Send, accept, decline, and remove friend connections.
 - **Real-Time Messenger:** Chat with friends through ASP.NET Core SignalR.
-- **Video Calling:** Start Daily-powered video calls from an active chat.
+- **Video Calling:** Start Jitsi Meet video calls from an active chat.
 - **Social Feed:** Create posts and view community updates.
 
 ## Tech Stack
@@ -41,7 +41,7 @@ MiLo is a real-time social web application where users can register, discover fr
 - ASP.NET Core Identity
 - JWT authentication
 - SignalR hubs
-- Daily video rooms
+- Jitsi Meet video rooms
 
 ## Project Structure
 
@@ -92,7 +92,6 @@ ConnectionStrings__DefaultConnection=Host=your-neon-host;Port=5432;Database=neon
 Jwt__Key=your_long_random_secret
 FrontendOrigins=https://your-vercel-app.vercel.app
 ASPNETCORE_ENVIRONMENT=Production
-Daily__ApiKey=your_daily_api_key
 ```
 
 ### Frontend
@@ -167,7 +166,6 @@ This repo includes `render.yaml`. Create a Render Blueprint from the repository 
 ```env
 ConnectionStrings__DefaultConnection=Host=your-neon-host;Port=5432;Database=neondb;Username=your_user;Password=your_password;SSL Mode=Require
 FrontendOrigins=https://your-vercel-app.vercel.app
-Daily__ApiKey=your_daily_api_key
 ```
 
 Render builds the backend from:

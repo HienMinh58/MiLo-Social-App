@@ -37,7 +37,7 @@ public class PostController : ControllerBase
             post.Id,
             post.Content,
             post.CreatedAt,
-            User = new { post.User.Id, post.User.UserName, post.User.Email},
+            User = new { post.User.Id, post.User.UserName, post.User.Email, post.User.Avatar },
             likesCount = 0,
             isLikedByMe = false,
             Comments = new List<Comment>(),
@@ -66,7 +66,7 @@ public class PostController : ControllerBase
                 p.Id,
                 p.Content,
                 p.CreatedAt,
-                User = new { p.UserId, p.User.UserName, p.User.Email },
+                User = new { p.User.Id, p.User.UserName, p.User.Email, p.User.Avatar },
                 likesCount = p.Likes.Count,
                 isLikedByMe = p.Likes.Any(l => l.UserId == userId),
                 Comments = p.Comments.Select(c => new
@@ -74,7 +74,7 @@ public class PostController : ControllerBase
                     c.Id,
                     c.Content,
                     c.CreatedAt,
-                    User = new { c.User.Id, c.User.UserName }
+                    User = new { c.User.Id, c.User.UserName, c.User.Avatar }
                 }).OrderBy(c => c.CreatedAt).ToList()
             })
             .ToListAsync();

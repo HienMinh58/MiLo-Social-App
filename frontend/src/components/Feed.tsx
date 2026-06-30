@@ -19,6 +19,7 @@ interface User {
   id: string;
   userName: string;
   email?: string;
+  avatar?: string;
 }
 
 interface Comment {
@@ -157,7 +158,7 @@ const Feed: React.FC = () => {
             >
               <HStack justify="space-between" mb={4} align="flex-start">
                 <HStack spacing={3}>
-                  <Avatar name={post.user.userName} size="md" bg="#26cba3" color="white" />
+                  <Avatar src={post.user.avatar} name={post.user.userName} size="md" bg="#26cba3" color="white" />
                   <Box textAlign="left">
                     <Text fontWeight="800" color="#172033">
                       {post.user.userName}

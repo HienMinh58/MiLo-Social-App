@@ -42,6 +42,9 @@ interface Post {
 const Feed: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState<string>("");
+  const [commentInputs, setCommentInputs] = useState<Record<number, string>>({});
+  const [likingPostIds, setLikingPostIds] = useState<Set<number>>(new Set());
+  const [commentingPostIds, setCommentingPostIds] = useState<Set<number>>(new Set());
 
   const token = localStorage.getItem("jwt");
 
@@ -83,6 +86,81 @@ const Feed: React.FC = () => {
       setNewPost("");
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleToggleLike = async (postId: number) => {
+    if (likingPostIds.has(postId)) return;
+
+    setLikingPostIds((prev) => new Set(prev).add(postId));
+    try {
+      const res = await axios.post(
+        `${API_URL}/post/${postId}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                likesCount: res.data.likesCount,
+                isLikedByMe: res.data.isLikedByMe,
+              }
+            : post,
+        ),
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLikingPostIds((prev) => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
+    }
+  };
+
+  const handleCreateComment = async (postId: number) => {
+    const content = commentInputs[postId]?.trim();
+    if (!content || commentingPostIds.has(postId)) return;
+
+    setCommentingPostIds((prev) => new Set(prev).add(postId));
+    try {
+      const res = await axios.post<Comment>(
+        `${API_URL}/post/${postId}/comments`,
+        { content },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? {
+                ...post,
+                comments: [...post.comments, res.data],
+              }
+            : post,
+        ),
+      );
+      setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setCommentingPostIds((prev) => {
+        const next = new Set(prev);
+        next.delete(postId);
+        return next;
+      });
     }
   };
 
@@ -179,9 +257,17 @@ const Feed: React.FC = () => {
               </Text>
 
               <HStack spacing={3} mb={4}>
-                <Badge bg="#fff0e8" color="#d95d39" borderRadius="full" px={3} py={1}>
-                  {post.likesCount} likes
-                </Badge>
+                <Button
+                  size="sm"
+                  borderRadius="full"
+                  bg={post.isLikedByMe ? "#d95d39" : "#fff0e8"}
+                  color={post.isLikedByMe ? "white" : "#d95d39"}
+                  onClick={() => handleToggleLike(post.id)}
+                  isLoading={likingPostIds.has(post.id)}
+                  _hover={{ bg: post.isLikedByMe ? "#c44f30" : "#ffe2d1" }}
+                >
+                  {post.isLikedByMe ? "Liked" : "Like"} · {post.likesCount}
+                </Button>
                 <Badge bg="#edf7f4" color="#16866d" borderRadius="full" px={3} py={1}>
                   {post.comments.length} comments
                 </Badge>
@@ -204,6 +290,35 @@ const Feed: React.FC = () => {
                     </Text>
                   </Box>
                 ))}
+
+                <HStack align="flex-start" spacing={3}>
+                  <Textarea
+                    placeholder="Viet binh luan..."
+                    value={commentInputs[post.id] || ""}
+                    onChange={(e) =>
+                      setCommentInputs((prev) => ({ ...prev, [post.id]: e.target.value }))
+                    }
+                    minH="44px"
+                    resize="vertical"
+                    bg="#fbfaf7"
+                    border="1px solid"
+                    borderColor="blackAlpha.100"
+                    borderRadius="14px"
+                    _focus={{ borderColor: "#26cba3", boxShadow: "0 0 0 3px rgba(38, 203, 163, 0.16)" }}
+                  />
+                  <Button
+                    bg="#26cba3"
+                    color="white"
+                    borderRadius="full"
+                    px={5}
+                    onClick={() => handleCreateComment(post.id)}
+                    isDisabled={!commentInputs[post.id]?.trim()}
+                    isLoading={commentingPostIds.has(post.id)}
+                    _hover={{ bg: "#1fa98a" }}
+                  >
+                    Gui
+                  </Button>
+                </HStack>
               </VStack>
             </Box>
           ))}

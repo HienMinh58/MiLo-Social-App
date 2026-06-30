@@ -283,7 +283,9 @@ export default function Messenger() {
     const conn = getConnection();
 
     pc.ontrack = (event) => {
-      event.streams[0]?.getTracks().forEach((track) => {
+      const incomingTracks = event.streams[0]?.getTracks() ?? [event.track];
+
+      incomingTracks.forEach((track) => {
         if (!remote.getTracks().some((existingTrack) => existingTrack.id === track.id)) {
           remote.addTrack(track);
         }
@@ -291,6 +293,7 @@ export default function Messenger() {
 
       remoteStreamRef.current = remote;
       setRemoteStream(new MediaStream(remote.getTracks()));
+      console.info("WebRTC remote tracks", remote.getTracks().map((track) => track.kind));
     };
 
     pc.onicecandidate = async (event) => {
@@ -299,6 +302,8 @@ export default function Messenger() {
     };
 
     pc.oniceconnectionstatechange = () => {
+      console.info("WebRTC ICE state", pc.iceConnectionState);
+
       if (pc.iceConnectionState === "failed") {
         toast({
           title: "Video connection failed",
@@ -307,6 +312,10 @@ export default function Messenger() {
           duration: 4000,
         });
       }
+    };
+
+    pc.onconnectionstatechange = () => {
+      console.info("WebRTC connection state", pc.connectionState);
     };
 
     peerConnectionRef.current = pc;

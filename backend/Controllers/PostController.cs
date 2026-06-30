@@ -80,6 +80,76 @@ public class PostController : ControllerBase
             .ToListAsync();
         return Ok(posts);
     }
+
+    [HttpPost("{postId:int}/like")]
+    public async Task<IActionResult> ToggleLike(int postId)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var postExists = await _context.Posts.AnyAsync(p => p.Id == postId);
+        if (!postExists) return NotFound();
+
+        var existingLike = await _context.Likes
+            .FirstOrDefaultAsync(l => l.PostId == postId && l.UserId == userId);
+
+        var isLikedByMe = existingLike == null;
+        if (existingLike == null)
+        {
+            _context.Likes.Add(new Like
+            {
+                PostId = postId,
+                UserId = userId
+            });
+        }
+        else
+        {
+            _context.Likes.Remove(existingLike);
+        }
+
+        await _context.SaveChangesAsync();
+
+        var likesCount = await _context.Likes.CountAsync(l => l.PostId == postId);
+        return Ok(new
+        {
+            postId,
+            likesCount,
+            isLikedByMe
+        });
+    }
+
+    [HttpPost("{postId:int}/comments")]
+    public async Task<IActionResult> CreateComment(int postId, [FromBody] CreateCommentDto dto)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        var content = dto.Content?.Trim();
+        if (string.IsNullOrEmpty(content)) return BadRequest("Comment content is required.");
+
+        var postExists = await _context.Posts.AnyAsync(p => p.Id == postId);
+        if (!postExists) return NotFound();
+
+        var comment = new Comment
+        {
+            PostId = postId,
+            UserId = userId,
+            Content = content,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Comments.Add(comment);
+        await _context.SaveChangesAsync();
+        await _context.Entry(comment).Reference(c => c.User).LoadAsync();
+
+        return Ok(new
+        {
+            comment.Id,
+            comment.Content,
+            comment.CreatedAt,
+            User = new { comment.User.Id, comment.User.UserName, comment.User.Email, comment.User.Avatar }
+        });
+    }
 }
 
 public class CreatePostDto

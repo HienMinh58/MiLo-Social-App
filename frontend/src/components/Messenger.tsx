@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Avatar,
   Badge,
@@ -38,7 +38,6 @@ interface SelectedUser {
 interface IncomingCall {
   callerId: string;
   callerName: string;
-  roomUrl: string;
 }
 
 function getUserIdFromToken(token: string) {
@@ -67,8 +66,14 @@ export default function Messenger() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+  const [activeCallUserId, setActiveCallUserId] = useState<string | null>(null);
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   const [startingCall, setStartingCall] = useState(false);
   const toast = useToast();
+  const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const localVideoRef = useRef<HTMLVideoElement | null>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const accessToken = localStorage.getItem("jwt");
   const currentUserId = accessToken ? getUserIdFromToken(accessToken) : null;
@@ -110,18 +115,44 @@ export default function Messenger() {
       if (!conn) return;
 
       conn.off("ReceiveVideoCallInvite");
-      conn.on("ReceiveVideoCallInvite", (callerId: string, callerName: string, roomUrl: string) => {
-        setIncomingCall({ callerId, callerName, roomUrl });
+      conn.on("ReceiveVideoCallInvite", (callerId: string, callerName: string) => {
+        setIncomingCall({ callerId, callerName });
       });
 
       conn.off("VideoCallAccepted");
-      conn.on("VideoCallAccepted", (_receiverId: string, roomUrl: string) => {
-        window.open(roomUrl, "_blank", "noopener,noreferrer");
+      conn.on("VideoCallAccepted", async (receiverId: string) => {
+        await createAndSendOffer(receiverId);
       });
 
       conn.off("VideoCallDeclined");
       conn.on("VideoCallDeclined", () => {
         toast({ title: "Video call declined", status: "info", duration: 2500 });
+        endLocalCall();
+      });
+
+      conn.off("ReceiveVideoOffer");
+      conn.on("ReceiveVideoOffer", async (callerId: string, offer: string) => {
+        await handleVideoOffer(callerId, offer);
+      });
+
+      conn.off("ReceiveVideoAnswer");
+      conn.on("ReceiveVideoAnswer", async (_receiverId: string, answer: string) => {
+        const pc = peerConnectionRef.current;
+        if (!pc) return;
+        await pc.setRemoteDescription(JSON.parse(answer));
+      });
+
+      conn.off("ReceiveIceCandidate");
+      conn.on("ReceiveIceCandidate", async (_senderId: string, candidate: string) => {
+        const pc = peerConnectionRef.current;
+        if (!pc) return;
+        await pc.addIceCandidate(JSON.parse(candidate));
+      });
+
+      conn.off("VideoCallEnded");
+      conn.on("VideoCallEnded", () => {
+        endLocalCall();
+        toast({ title: "Video call ended", status: "info", duration: 2500 });
       });
     };
 
@@ -195,29 +226,109 @@ export default function Messenger() {
     }
   };
 
+  useEffect(() => {
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
+
+  useEffect(() => {
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = remoteStream;
+    }
+  }, [remoteStream]);
+
+  const createPeerConnection = (remoteUserId: string) => {
+    const pc = new RTCPeerConnection();
+    const remote = new MediaStream();
+    const conn = getConnection();
+
+    pc.ontrack = (event) => {
+      event.streams[0]?.getTracks().forEach((track) => remote.addTrack(track));
+      setRemoteStream(remote);
+    };
+
+    pc.onicecandidate = async (event) => {
+      if (!event.candidate) return;
+      await conn?.invoke("SendIceCandidate", remoteUserId, JSON.stringify(event.candidate));
+    };
+
+    peerConnectionRef.current = pc;
+    return pc;
+  };
+
+  const getCallMedia = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    setLocalStream(stream);
+    return stream;
+  };
+
+  const closePeerConnection = () => {
+    peerConnectionRef.current?.close();
+    peerConnectionRef.current = null;
+  };
+
+  const stopStream = (stream: MediaStream | null) => {
+    stream?.getTracks().forEach((track) => track.stop());
+  };
+
+  const endLocalCall = () => {
+    closePeerConnection();
+    stopStream(localStream);
+    stopStream(remoteStream);
+    setLocalStream(null);
+    setRemoteStream(null);
+    setActiveCallUserId(null);
+    setStartingCall(false);
+  };
+
+  const createAndSendOffer = async (receiverId: string) => {
+    try {
+      const stream = localStream ?? await getCallMedia();
+      const pc = peerConnectionRef.current ?? createPeerConnection(receiverId);
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      await getConnection()?.invoke("SendVideoOffer", receiverId, JSON.stringify(offer));
+      setActiveCallUserId(receiverId);
+    } catch (err: any) {
+      endLocalCall();
+      toast({ title: "Could not start video call", description: err.message, status: "error" });
+    }
+  };
+
+  const handleVideoOffer = async (callerId: string, offer: string) => {
+    try {
+      const stream = localStream ?? await getCallMedia();
+      const pc = peerConnectionRef.current ?? createPeerConnection(callerId);
+      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+
+      await pc.setRemoteDescription(JSON.parse(offer));
+      const answer = await pc.createAnswer();
+      await pc.setLocalDescription(answer);
+      await getConnection()?.invoke("SendVideoAnswer", callerId, JSON.stringify(answer));
+      setActiveCallUserId(callerId);
+    } catch (err: any) {
+      endLocalCall();
+      toast({ title: "Could not answer video call", description: err.message, status: "error" });
+    }
+  };
+
   const startVideoCall = async () => {
     if (!chatSelectedUserId) return;
 
     try {
       setStartingCall(true);
-      const res = await axios.post(
-        `${API_URL}/video-call/room`,
-        { receiverId: chatSelectedUserId },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-
-      const roomUrl = res.data.roomUrl;
+      await getCallMedia();
       const conn = getConnection();
-      await conn?.invoke("InviteVideoCall", chatSelectedUserId, roomUrl);
+      await conn?.invoke("InviteVideoCall", chatSelectedUserId, selectedUserInfo?.userName || "MiLo user");
       toast({ title: "Calling...", status: "info", duration: 2000 });
     } catch (err: any) {
+      endLocalCall();
       toast({
         title: "Could not start video call",
-        description: err.response?.data || err.message,
+        description: err.message,
         status: "error",
       });
     } finally {
@@ -230,8 +341,8 @@ export default function Messenger() {
 
     try {
       const conn = getConnection();
-      await conn?.invoke("AcceptVideoCall", incomingCall.callerId, incomingCall.roomUrl);
-      window.open(incomingCall.roomUrl, "_blank", "noopener,noreferrer");
+      await getCallMedia();
+      await conn?.invoke("AcceptVideoCall", incomingCall.callerId);
     } finally {
       setIncomingCall(null);
     }
@@ -245,6 +356,14 @@ export default function Messenger() {
       await conn?.invoke("DeclineVideoCall", incomingCall.callerId);
     } finally {
       setIncomingCall(null);
+    }
+  };
+
+  const endVideoCall = async () => {
+    const receiverId = activeCallUserId;
+    endLocalCall();
+    if (receiverId) {
+      await getConnection()?.invoke("EndVideoCall", receiverId);
     }
   };
 
@@ -290,6 +409,31 @@ export default function Messenger() {
               Accept
             </Button>
           </HStack>
+        </Box>
+      )}
+      {activeCallUserId && (
+        <Box
+          position="fixed"
+          left={{ base: 4, md: 8 }}
+          right={{ base: 4, md: 8 }}
+          bottom={{ base: 4, md: 8 }}
+          zIndex={190}
+          bg="#172033"
+          borderRadius="20px"
+          boxShadow="0 22px 70px rgba(23, 32, 51, 0.28)"
+          p={4}
+        >
+          <Flex gap={3} align="stretch" direction={{ base: "column", md: "row" }}>
+            <Box flex={1} bg="black" borderRadius="14px" overflow="hidden" minH={{ base: "180px", md: "260px" }}>
+              <video ref={remoteVideoRef} autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </Box>
+            <Box w={{ base: "100%", md: "260px" }} bg="black" borderRadius="14px" overflow="hidden" minH="160px">
+              <video ref={localVideoRef} autoPlay muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </Box>
+            <Button alignSelf={{ base: "stretch", md: "center" }} bg="#ff6b6b" color="white" borderRadius="full" onClick={endVideoCall}>
+              End Call
+            </Button>
+          </Flex>
         </Box>
       )}
       <Flex

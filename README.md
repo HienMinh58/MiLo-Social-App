@@ -19,7 +19,7 @@ MiLo is a real-time social web application where users can register, discover fr
 - **User Profiles:** View and edit profile details, avatar URLs, and biography text.
 - **Friend Requests:** Send, accept, decline, and remove friend connections.
 - **Real-Time Messenger:** Chat with friends through ASP.NET Core SignalR.
-- **Video Calling:** Start Jitsi Meet video calls from an active chat.
+- **Video Calling:** Start peer-to-peer WebRTC video calls from an active chat.
 - **Social Feed:** Create posts and view community updates.
 
 ## Tech Stack
@@ -41,7 +41,7 @@ MiLo is a real-time social web application where users can register, discover fr
 - ASP.NET Core Identity
 - JWT authentication
 - SignalR hubs
-- Jitsi Meet video rooms
+- WebRTC 1:1 calls with SignalR signaling
 
 ## Project Structure
 

@@ -40,25 +40,24 @@ public class ChatHub : Hub
         await Clients.Caller.SendAsync("ReceiveMessage", senderId, content, message.SentAt, senderAvatarUrl);
     }
 
-    public async Task InviteVideoCall(string receiverId, string roomUrl)
+    public async Task InviteVideoCall(string receiverId, string callerName)
     {
         var senderId = Context.UserIdentifier;
-        if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(roomUrl)) return;
+        if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId)) return;
 
         var senderUser = await _userManager.FindByIdAsync(senderId);
         await Clients.User(receiverId).SendAsync(
             "ReceiveVideoCallInvite",
             senderId,
-            senderUser?.UserName ?? "MiLo user",
-            roomUrl);
+            senderUser?.UserName ?? callerName ?? "MiLo user");
     }
 
-    public async Task AcceptVideoCall(string callerId, string roomUrl)
+    public async Task AcceptVideoCall(string callerId)
     {
         var receiverId = Context.UserIdentifier;
-        if (string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(callerId) || string.IsNullOrEmpty(roomUrl)) return;
+        if (string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(callerId)) return;
 
-        await Clients.User(callerId).SendAsync("VideoCallAccepted", receiverId, roomUrl);
+        await Clients.User(callerId).SendAsync("VideoCallAccepted", receiverId);
     }
 
     public async Task DeclineVideoCall(string callerId)
@@ -67,5 +66,37 @@ public class ChatHub : Hub
         if (string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(callerId)) return;
 
         await Clients.User(callerId).SendAsync("VideoCallDeclined", receiverId);
+    }
+
+    public async Task SendVideoOffer(string receiverId, string offer)
+    {
+        var senderId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(offer)) return;
+
+        await Clients.User(receiverId).SendAsync("ReceiveVideoOffer", senderId, offer);
+    }
+
+    public async Task SendVideoAnswer(string receiverId, string answer)
+    {
+        var senderId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(answer)) return;
+
+        await Clients.User(receiverId).SendAsync("ReceiveVideoAnswer", senderId, answer);
+    }
+
+    public async Task SendIceCandidate(string receiverId, string candidate)
+    {
+        var senderId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId) || string.IsNullOrEmpty(candidate)) return;
+
+        await Clients.User(receiverId).SendAsync("ReceiveIceCandidate", senderId, candidate);
+    }
+
+    public async Task EndVideoCall(string receiverId)
+    {
+        var senderId = Context.UserIdentifier;
+        if (string.IsNullOrEmpty(senderId) || string.IsNullOrEmpty(receiverId)) return;
+
+        await Clients.User(receiverId).SendAsync("VideoCallEnded", senderId);
     }
 }

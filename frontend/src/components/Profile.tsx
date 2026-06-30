@@ -17,15 +17,24 @@ import { API_URL } from "../config/api";
 import { useParams } from "react-router-dom";
 
 interface UserProfile {
+  id?: string;
   userName: string;
-  Email: string;
-  Bio?: string;
-  Avatar?: string;
+  email: string;
+  bio?: string;
+  avatar?: string;
 }
+
+const normalizeProfile = (data: any): UserProfile => ({
+  id: data.id ?? data.Id,
+  userName: data.userName ?? data.UserName ?? "",
+  email: data.email ?? data.Email ?? "",
+  bio: data.bio ?? data.Bio ?? "",
+  avatar: data.avatar ?? data.Avatar ?? "",
+});
 
 const Profile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
-  const [profile, setProfile] = useState<UserProfile>({ userName: "", Email: "", Bio: "", Avatar: "" });
+  const [profile, setProfile] = useState<UserProfile>({ userName: "", email: "", bio: "", avatar: "" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
@@ -52,10 +61,11 @@ const Profile: React.FC = () => {
           },
         });
 
-        setProfile(response.data);
+        const nextProfile = normalizeProfile(response.data);
+        setProfile(nextProfile);
         if (isMyProfile) {
-          setEditBio(response.data.Bio || "");
-          setEditAvatar(response.data.Avatar || "");
+          setEditBio(nextProfile.bio || "");
+          setEditAvatar(nextProfile.avatar || "");
         }
       } catch (error: any) {
         setError(error.message);
@@ -81,7 +91,10 @@ const Profile: React.FC = () => {
           },
         },
       );
-      setProfile(response.data);
+      const nextProfile = normalizeProfile(response.data);
+      setProfile(nextProfile);
+      setEditBio(nextProfile.bio || "");
+      setEditAvatar(nextProfile.avatar || "");
       setIsEditing(false);
     } catch (err: any) {
       console.error("Failed to save profile", err);
@@ -147,7 +160,7 @@ const Profile: React.FC = () => {
 
           <Box px={{ base: 5, md: 8 }} pb={8} mt="-64px">
             <Avatar
-              src={profile.Avatar}
+              src={profile.avatar}
               name={profile.userName}
               size="2xl"
               bg="#26cba3"
@@ -162,7 +175,7 @@ const Profile: React.FC = () => {
                   {profile.userName}
                 </Heading>
                 <Text color="gray.500" mt={1}>
-                  {profile.Email}
+                  {profile.email}
                 </Text>
               </Box>
 
@@ -248,9 +261,9 @@ const Profile: React.FC = () => {
                 <Text fontSize="sm" color="gray.500" fontWeight="800" mb={2}>
                   Bio
                 </Text>
-                {profile.Bio ? (
+                {profile.bio ? (
                   <Text color="gray.800" fontSize="lg" lineHeight="1.7">
-                    {profile.Bio}
+                    {profile.bio}
                   </Text>
                 ) : (
                   <Text color="gray.500">No bio provided.</Text>

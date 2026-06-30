@@ -1,5 +1,5 @@
 import * as signalR from "@microsoft/signalr";
-import { API_URL } from "../config/api";
+import { HUB_URL } from "../config/api";
 
 
 let connection: signalR.HubConnection | null = null;
@@ -15,7 +15,7 @@ export async function initSignalR(
 ) {
     if(!connection) {
         connection = new signalR.HubConnectionBuilder()
-            .withUrl("http://localhost:8080/hub/chat", { accessTokenFactory: () => accessToken })
+            .withUrl(HUB_URL, { accessTokenFactory: () => accessToken })
             .withAutomaticReconnect()
             .build();
 

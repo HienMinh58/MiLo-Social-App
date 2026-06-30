@@ -67,7 +67,7 @@ public class AccountController : ControllerBase
         };
 
         var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["JWT:Key"])
+            Encoding.UTF8.GetBytes(_config["Jwt:Key"] ?? "super_secret_key_for_dev_only_123456789")
         );
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

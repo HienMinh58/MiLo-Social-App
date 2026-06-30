@@ -72,6 +72,8 @@ export default function Messenger() {
   const [startingCall, setStartingCall] = useState(false);
   const toast = useToast();
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
+  const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -226,17 +228,35 @@ export default function Messenger() {
     }
   };
 
-  useEffect(() => {
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream;
+  const attachVideoStream = (video: HTMLVideoElement | null, stream: MediaStream | null) => {
+    if (!video) return;
+    video.srcObject = stream;
+    if (stream) {
+      video.play().catch(() => undefined);
     }
-  }, [localStream]);
+  };
 
   useEffect(() => {
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = remoteStream;
-    }
-  }, [remoteStream]);
+    attachVideoStream(localVideoRef.current, localStream);
+  }, [localStream, activeCallUserId]);
+
+  useEffect(() => {
+    attachVideoStream(remoteVideoRef.current, remoteStream);
+  }, [remoteStream, activeCallUserId]);
+
+  const addLocalTracks = (pc: RTCPeerConnection, stream: MediaStream) => {
+    const existingTrackIds = new Set(
+      pc.getSenders()
+        .map((sender) => sender.track?.id)
+        .filter(Boolean),
+    );
+
+    stream.getTracks().forEach((track) => {
+      if (!existingTrackIds.has(track.id)) {
+        pc.addTrack(track, stream);
+      }
+    });
+  };
 
   const createPeerConnection = (remoteUserId: string) => {
     const pc = new RTCPeerConnection();
@@ -244,8 +264,14 @@ export default function Messenger() {
     const conn = getConnection();
 
     pc.ontrack = (event) => {
-      event.streams[0]?.getTracks().forEach((track) => remote.addTrack(track));
-      setRemoteStream(remote);
+      event.streams[0]?.getTracks().forEach((track) => {
+        if (!remote.getTracks().some((existingTrack) => existingTrack.id === track.id)) {
+          remote.addTrack(track);
+        }
+      });
+
+      remoteStreamRef.current = remote;
+      setRemoteStream(new MediaStream(remote.getTracks()));
     };
 
     pc.onicecandidate = async (event) => {
@@ -258,7 +284,12 @@ export default function Messenger() {
   };
 
   const getCallMedia = async () => {
+    if (localStreamRef.current) {
+      return localStreamRef.current;
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localStreamRef.current = stream;
     setLocalStream(stream);
     return stream;
   };
@@ -274,8 +305,10 @@ export default function Messenger() {
 
   const endLocalCall = () => {
     closePeerConnection();
-    stopStream(localStream);
-    stopStream(remoteStream);
+    stopStream(localStreamRef.current);
+    stopStream(remoteStreamRef.current);
+    localStreamRef.current = null;
+    remoteStreamRef.current = null;
     setLocalStream(null);
     setRemoteStream(null);
     setActiveCallUserId(null);
@@ -284,9 +317,9 @@ export default function Messenger() {
 
   const createAndSendOffer = async (receiverId: string) => {
     try {
-      const stream = localStream ?? await getCallMedia();
+      const stream = localStreamRef.current ?? await getCallMedia();
       const pc = peerConnectionRef.current ?? createPeerConnection(receiverId);
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      addLocalTracks(pc, stream);
 
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
@@ -300,9 +333,9 @@ export default function Messenger() {
 
   const handleVideoOffer = async (callerId: string, offer: string) => {
     try {
-      const stream = localStream ?? await getCallMedia();
+      const stream = localStreamRef.current ?? await getCallMedia();
       const pc = peerConnectionRef.current ?? createPeerConnection(callerId);
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      addLocalTracks(pc, stream);
 
       await pc.setRemoteDescription(JSON.parse(offer));
       const answer = await pc.createAnswer();
@@ -321,6 +354,7 @@ export default function Messenger() {
     try {
       setStartingCall(true);
       await getCallMedia();
+      setActiveCallUserId(chatSelectedUserId);
       const conn = getConnection();
       await conn?.invoke("InviteVideoCall", chatSelectedUserId, selectedUserInfo?.userName || "MiLo user");
       toast({ title: "Calling...", status: "info", duration: 2000 });
@@ -342,6 +376,7 @@ export default function Messenger() {
     try {
       const conn = getConnection();
       await getCallMedia();
+      setActiveCallUserId(incomingCall.callerId);
       await conn?.invoke("AcceptVideoCall", incomingCall.callerId);
     } finally {
       setIncomingCall(null);

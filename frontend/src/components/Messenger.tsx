@@ -74,6 +74,7 @@ export default function Messenger() {
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const remoteStreamRef = useRef<MediaStream | null>(null);
+  const pendingIceCandidatesRef = useRef<RTCIceCandidateInit[]>([]);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -142,13 +143,20 @@ export default function Messenger() {
         const pc = peerConnectionRef.current;
         if (!pc) return;
         await pc.setRemoteDescription(JSON.parse(answer));
+        await flushPendingIceCandidates(pc);
       });
 
       conn.off("ReceiveIceCandidate");
       conn.on("ReceiveIceCandidate", async (_senderId: string, candidate: string) => {
         const pc = peerConnectionRef.current;
-        if (!pc) return;
-        await pc.addIceCandidate(JSON.parse(candidate));
+        const parsedCandidate = JSON.parse(candidate);
+
+        if (!pc || !pc.remoteDescription) {
+          pendingIceCandidatesRef.current.push(parsedCandidate);
+          return;
+        }
+
+        await pc.addIceCandidate(parsedCandidate);
       });
 
       conn.off("VideoCallEnded");
@@ -258,8 +266,19 @@ export default function Messenger() {
     });
   };
 
+  const flushPendingIceCandidates = async (pc: RTCPeerConnection) => {
+    const candidates = pendingIceCandidatesRef.current;
+    pendingIceCandidatesRef.current = [];
+
+    for (const candidate of candidates) {
+      await pc.addIceCandidate(candidate);
+    }
+  };
+
   const createPeerConnection = (remoteUserId: string) => {
-    const pc = new RTCPeerConnection();
+    const pc = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    });
     const remote = new MediaStream();
     const conn = getConnection();
 
@@ -277,6 +296,17 @@ export default function Messenger() {
     pc.onicecandidate = async (event) => {
       if (!event.candidate) return;
       await conn?.invoke("SendIceCandidate", remoteUserId, JSON.stringify(event.candidate));
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === "failed") {
+        toast({
+          title: "Video connection failed",
+          description: "The peer-to-peer connection could not be established.",
+          status: "error",
+          duration: 4000,
+        });
+      }
     };
 
     peerConnectionRef.current = pc;
@@ -309,6 +339,7 @@ export default function Messenger() {
     stopStream(remoteStreamRef.current);
     localStreamRef.current = null;
     remoteStreamRef.current = null;
+    pendingIceCandidatesRef.current = [];
     setLocalStream(null);
     setRemoteStream(null);
     setActiveCallUserId(null);
@@ -338,6 +369,7 @@ export default function Messenger() {
       addLocalTracks(pc, stream);
 
       await pc.setRemoteDescription(JSON.parse(offer));
+      await flushPendingIceCandidates(pc);
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       await getConnection()?.invoke("SendVideoAnswer", callerId, JSON.stringify(answer));

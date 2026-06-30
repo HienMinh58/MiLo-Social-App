@@ -21,14 +21,17 @@ public class FriendsController : ControllerBase
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (currentUserId == userId) return BadRequest("Cannot friend yourself.");
 
-        var existing = await _context.Friends.FindAsync(currentUserId, userId);
+        var existing = await _context.Friends
+            .FirstOrDefaultAsync(f =>
+                (f.RequesterId == currentUserId && f.AddresseeId == userId) ||
+                (f.RequesterId == userId && f.AddresseeId == currentUserId));
         if (existing != null) return BadRequest("Request already sent or friends");
 
         var friendRequest = new Friend
         {
             RequesterId = currentUserId,
             AddresseeId = userId,
-            FriendStatus = FriendStatus.Accepted
+            FriendStatus = FriendStatus.Pending
         };
 
         _context.Friends.Add(friendRequest);
